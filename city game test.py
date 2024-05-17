@@ -1,101 +1,153 @@
 import random
+import sys
+from PyQt5.QtWidgets import (
+    QApplication,
+    QWidget,
+    QPushButton,
+    QLabel,
+    QVBoxLayout,
+    QHBoxLayout,
+    QGridLayout,
+    QMessageBox,
+)
+
 
 class City:
     def __init__(self, name):
         self.name = name
         self.population = 1000
-        self.funds = 10000
-        self.buildings = ["Town Hall"]
-        self.happiness = 50
-        self.tax_rate = 0.1  # 10% tax rate
+        self.funds = 5000
+        self.happiness = 70
+        self.tax_rate = 0.1
+        self.buildings = []
+
+    def get_status_text(self):
+        return f"""
+        Population: {self.population}
+        Funds: ${self.funds}
+        Happiness: {self.happiness}%
+        Tax Rate: {self.tax_rate * 100}%
+        Buildings: {', '.join(self.buildings)}
+        """
+
+
+class CityBuilder(QWidget):
+    def __init__(self, city_name):
+        super().__init__()
+        self.city = City(city_name)  # Create an instance of the City class
+        self.setWindowTitle(f"{self.city.name} City Builder")
+
+        # Create UI elements
+        self.population_label = QLabel(f"Population: {self.city.population}")
+        self.funds_label = QLabel(f"Funds: ${self.city.funds}")
+        self.happiness_label = QLabel(f"Happiness: {self.city.happiness}%")
+        self.tax_rate_label = QLabel(f"Tax Rate: {self.city.tax_rate * 100}%")
+        self.buildings_label = QLabel(f"Buildings: {', '.join(self.city.buildings)}")
+
+        self.build_house_button = QPushButton("Build House")
+        self.build_factory_button = QPushButton("Build Factory")
+        self.build_park_button = QPushButton("Build Park")
+        self.view_status_button = QPushButton("View City Status")
+        self.quit_button = QPushButton("Quit")
+
+        # Layout
+        layout = QVBoxLayout()
+        status_layout = QHBoxLayout()
+        buttons_layout = QGridLayout()
+
+        status_layout.addWidget(self.population_label)
+        status_layout.addWidget(self.funds_label)
+        status_layout.addWidget(self.happiness_label)
+        status_layout.addWidget(self.tax_rate_label)
+        status_layout.addWidget(self.buildings_label)
+
+        buttons_layout.addWidget(self.build_house_button, 0, 0)
+        buttons_layout.addWidget(self.build_factory_button, 0, 1)
+        buttons_layout.addWidget(self.build_park_button, 1, 0)
+        buttons_layout.addWidget(self.view_status_button, 1, 1)
+        buttons_layout.addWidget(self.quit_button, 2, 0, 1, 2)
+
+        layout.addLayout(status_layout)
+        layout.addLayout(buttons_layout)
+
+        self.setLayout(layout)
+
+        self.build_house_button.clicked.connect(lambda: self.build("House"))
+        self.build_factory_button.clicked.connect(lambda: self.build("Factory"))
+        self.build_park_button.clicked.connect(lambda: self.build("Park"))
+        self.view_status_button.clicked.connect(self.view_status)
+        self.quit_button.clicked.connect(self.quit)
+
 
     def build(self, building):
         if building == "House":
             cost = 500
-            if self.funds >= cost:
-                self.funds -= cost
-                self.population += 100
-                self.buildings.append("House")
+            if self.city.funds >= cost:
+                self.city.funds -= cost
+                self.city.population += 100
+                self.city.buildings.append("House")
                 print(f"You built a House! Population increased by 100.")
             else:
                 print("Not enough funds to build a House.")
 
         elif building == "Factory":
             cost = 2000
-            if self.funds >= cost:
-                self.funds -= cost
-                self.population += 200
-                self.buildings.append("Factory")
-                self.happiness -= 10
+            if self.city.funds >= cost:
+                self.city.funds -= cost
+                self.city.population += 200
+                self.city.buildings.append("Factory")
+                self.city.happiness -= 10
                 print(f"You built a Factory! Population increased by 200, but happiness decreased by 10.")
             else:
                 print("Not enough funds to build a Factory.")
 
         elif building == "Park":
             cost = 1000
-            if self.funds >= cost:
-                self.funds -= cost
-                self.happiness += 20
-                self.buildings.append("Park")
+            if self.city.funds >= cost:
+                self.city.funds -= cost
+                self.city.happiness += 20
+                self.city.buildings.append("Park")
                 print(f"You built a Park! Happiness increased by 20.")
             else:
                 print("Not enough funds to build a Park.")
 
     def status(self):
-        print(f"\n==== {self.name} ====")
-        print(f"Population: {self.population}")
-        print(f"Funds: ${self.funds}")
-        print(f"Happiness: {self.happiness}%")
-        print(f"Tax Rate: {self.tax_rate * 100}%")
-        print("Buildings:", ", ".join(self.buildings))
+        print(f"\n==== {self.city.name} ====")
+        print(f"Population: {self.city.population}")
+        print(f"Funds: ${self.city.funds}")
+        print(f"Happiness: {self.city.happiness}%")
+        print(f"Tax Rate: {self.city.tax_rate * 100}%")
+        print("Buildings:", ", ".join(self.city.buildings))
 
         # Collect taxes
-        taxes = int(self.population * self.tax_rate)
-        self.funds += taxes
+        taxes = int(self.city.population * self.city.tax_rate)
+        self.city.funds += taxes
         print(f"Collected ${taxes} in taxes.")
 
-def main():
-    city_name = input("Enter the name of your city: ")
-    city = City(city_name)
+    def view_status(self):
+        # Update labels with current city status
+        self.population_label.setText(f"Population: {self.city.population}")
+        self.funds_label.setText(f"Funds: ${self.city.funds}")
+        self.happiness_label.setText(f"Happiness: {self.city.happiness}%")
+        self.tax_rate_label.setText(f"Tax Rate: {self.city.tax_rate * 100}%")
+        self.buildings_label.setText(f"Buildings: {', '.join(self.city.buildings)}")
 
-    while True:
-        # Check for disasters
-        disaster_chance = 0.01  # 1% chance of disaster
-        if random.random() < disaster_chance:
-            disaster_type = random.choice(["Fire", "Earthquake", "Tornado"])
-            print(f"\n===== {disaster_type} Disaster! =====")
-            population_loss = int(city.population * 0.1)
-            funds_loss = int(city.funds * 0.2)
-            city.population -= population_loss
-            city.funds -= funds_loss
-            city.happiness -= 20
-            print(f"Population decreased by {population_loss}.")
-            print(f"Funds decreased by ${funds_loss}.")
-            print("Some buildings were destroyed.")
-            print(f"Happiness decreased by 20%.")
-
-        print("\nWhat would you like to do?")
-        print("1. Build a House")
-        print("2. Build a Factory")
-        print("3. Build a Park")
-        print("4. View City Status")
-        print("5. Quit")
-
-        choice = input("Enter your choice (1-5): ")
-
-        if choice == "1":
-            city.build("House")
-        elif choice == "2":
-            city.build("Factory")
-        elif choice == "3":
-            city.build("Park")
-        elif choice == "4":
-            city.status()
-        elif choice == "5":
-            print("Thanks for playing!")
-            break
-        else:
-            print("Invalid choice. Please try again.")
+    def quit(self):
+        # Ask for confirmation before quitting
+        result = QMessageBox.question(
+            self,
+            "Quit",
+            "Are you sure you want to quit?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if result == QMessageBox.Yes:
+            sys.exit()
 
 if __name__ == "__main__":
-    main()
+    app = QApplication(sys.argv)
+    city_name = input("Enter the name of your city: ")
+    city_builder = CityBuilder(city_name)
+    city_builder.show()
+    sys.exit(app.exec_())
+
