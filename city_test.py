@@ -1,4 +1,3 @@
-import random
 import sys
 from PyQt5.QtWidgets import (
     QApplication,
@@ -30,6 +29,16 @@ class City:
         Buildings: {', '.join(self.buildings)}
         """
 
+    def collect_taxes(self):
+        taxes = 0
+        for building in self.buildings:
+            if building == "House":
+                taxes += 100
+            elif building == "Factory":
+                taxes += 500
+        self.funds += taxes
+        return taxes
+
 
 class CityBuilder(QWidget):
     def __init__(self, city_name):
@@ -48,6 +57,7 @@ class CityBuilder(QWidget):
         self.build_factory_button = QPushButton("Build Factory")
         self.build_park_button = QPushButton("Build Park")
         self.view_status_button = QPushButton("View City Status")
+        self.collect_taxes_button = QPushButton("Collect Taxes")
         self.quit_button = QPushButton("Quit")
 
         # Layout
@@ -65,7 +75,8 @@ class CityBuilder(QWidget):
         buttons_layout.addWidget(self.build_factory_button, 0, 1)
         buttons_layout.addWidget(self.build_park_button, 1, 0)
         buttons_layout.addWidget(self.view_status_button, 1, 1)
-        buttons_layout.addWidget(self.quit_button, 2, 0, 1, 2)
+        buttons_layout.addWidget(self.collect_taxes_button, 2, 0)
+        buttons_layout.addWidget(self.quit_button, 2, 1, 1, 2)
 
         layout.addLayout(status_layout)
         layout.addLayout(buttons_layout)
@@ -76,8 +87,8 @@ class CityBuilder(QWidget):
         self.build_factory_button.clicked.connect(lambda: self.build("Factory"))
         self.build_park_button.clicked.connect(lambda: self.build("Park"))
         self.view_status_button.clicked.connect(self.view_status)
+        self.collect_taxes_button.clicked.connect(self.collect_taxes)
         self.quit_button.clicked.connect(self.quit)
-
 
     def build(self, building):
         if building == "House":
@@ -133,6 +144,11 @@ class CityBuilder(QWidget):
         self.happiness_label.setText(f"Happiness: {self.city.happiness}%")
         self.tax_rate_label.setText(f"Tax Rate: {self.city.tax_rate * 100}%")
         self.buildings_label.setText(f"Buildings: {', '.join(self.city.buildings)}")
+
+    def collect_taxes(self):
+        taxes = self.city.collect_taxes()
+        print(f"Collected ${taxes} in taxes.")
+        self.funds_label.setText(f"Funds: ${self.city.funds}")
 
     def quit(self):
         # Ask for confirmation before quitting
