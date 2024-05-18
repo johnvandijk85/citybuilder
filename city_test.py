@@ -51,6 +51,10 @@ class CityBuilder(QWidget):
         self.year_label = QLabel("2000")
         self.month_label = QLabel("January")
 
+        # Set starting date to January 2000
+        self.current_year = 2000
+        self.current_month = 1
+
         # Create UI elements
         self.population_label = QLabel(f"Population: {self.city.population}")
         self.funds_label = QLabel(f"Funds: ${self.city.funds}")
@@ -85,6 +89,9 @@ class CityBuilder(QWidget):
         self.layout.addWidget(self.year_label, alignment=Qt.AlignRight)
         self.layout.addWidget(self.month_label, alignment=Qt.AlignRight)
 
+        # Add year and month labels
+        status_layout.addWidget(self.year_label)
+        status_layout.addWidget(self.month_label)
 
         layout.addLayout(status_layout)
         layout.addLayout(buttons_layout)
