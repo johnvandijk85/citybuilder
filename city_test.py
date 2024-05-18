@@ -9,7 +9,8 @@ from PyQt5.QtWidgets import (
     QGridLayout,
     QMessageBox,
 )
-
+from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QTimer
 
 class City:
     def __init__(self, name):
@@ -56,7 +57,6 @@ class CityBuilder(QWidget):
         self.build_house_button = QPushButton("Build House")
         self.build_factory_button = QPushButton("Build Factory")
         self.build_park_button = QPushButton("Build Park")
-        self.view_status_button = QPushButton("View City Status")
         self.collect_taxes_button = QPushButton("Collect Taxes")
         self.quit_button = QPushButton("Quit")
 
@@ -74,7 +74,6 @@ class CityBuilder(QWidget):
         buttons_layout.addWidget(self.build_house_button, 0, 0)
         buttons_layout.addWidget(self.build_factory_button, 0, 1)
         buttons_layout.addWidget(self.build_park_button, 1, 0)
-        buttons_layout.addWidget(self.view_status_button, 1, 1)
         buttons_layout.addWidget(self.collect_taxes_button, 2, 0)
         buttons_layout.addWidget(self.quit_button, 2, 1, 1, 2)
 
@@ -86,9 +85,14 @@ class CityBuilder(QWidget):
         self.build_house_button.clicked.connect(lambda: self.build("House"))
         self.build_factory_button.clicked.connect(lambda: self.build("Factory"))
         self.build_park_button.clicked.connect(lambda: self.build("Park"))
-        self.view_status_button.clicked.connect(self.view_status)
         self.collect_taxes_button.clicked.connect(self.collect_taxes)
         self.quit_button.clicked.connect(self.quit)
+
+        # Timer for updating city status
+        self.timer = QTimer()
+        self.timer.setInterval(60000)  # Update every minute
+        self.timer.timeout.connect(self.update_status)
+        self.timer.start()
 
     def build(self, building):
         if building == "House":
@@ -122,28 +126,18 @@ class CityBuilder(QWidget):
             else:
                 print("Not enough funds to build a Park.")
 
-    def status(self):
-        print(f"\n==== {self.city.name} ====")
-        print("test1")
-        print(f"Population: {self.city.population}")
-        print("test2")
-        print(f"Funds: ${self.city.funds}")
-        print(f"Happiness: {self.city.happiness}%")
-        print(f"Tax Rate: {self.city.tax_rate * 100}%")
-        print("Buildings:", ", ".join(self.city.buildings))
-
-        # Collect taxes
-        taxes = int(self.city.population * self.city.tax_rate)
-        self.city.funds += taxes
-        print(f"Collected ${taxes} in taxes.")
-
-    def view_status(self):
-        # Update labels with current city status
+    def update_status(self):
+        # Update city status labels
         self.population_label.setText(f"Population: {self.city.population}")
         self.funds_label.setText(f"Funds: ${self.city.funds}")
         self.happiness_label.setText(f"Happiness: {self.city.happiness}%")
         self.tax_rate_label.setText(f"Tax Rate: {self.city.tax_rate * 100}%")
         self.buildings_label.setText(f"Buildings: {', '.join(self.city.buildings)}")
+
+        # Collect taxes automatically
+        taxes = self.city.collect_taxes()
+        print(f"Collected ${taxes} in taxes.")
+        self.funds_label.setText(f"Funds: ${self.city.funds}")
 
     def collect_taxes(self):
         taxes = self.city.collect_taxes()
