@@ -70,7 +70,6 @@ class CityBuilder(QWidget):
 
         # Layout
         self.layout = QVBoxLayout()
-        layout = QVBoxLayout()
         status_layout = QHBoxLayout()
         buttons_layout = QGridLayout()
 
@@ -93,10 +92,10 @@ class CityBuilder(QWidget):
         status_layout.addWidget(self.year_label)
         status_layout.addWidget(self.month_label)
 
-        layout.addLayout(status_layout)
-        layout.addLayout(buttons_layout)
+        self.layout.addLayout(status_layout)
+        self.layout.addLayout(buttons_layout)
 
-        self.setLayout(layout)
+        self.setLayout(self.layout)
 
         self.build_house_button.clicked.connect(lambda: self.build("House"))
         self.build_factory_button.clicked.connect(lambda: self.build("Factory"))
@@ -148,7 +147,6 @@ class CityBuilder(QWidget):
         self.funds_label.setText(f"Funds: ${self.city.funds}")
         self.happiness_label.setText(f"Happiness: {self.city.happiness}%")
         self.tax_rate_label.setText(f"Tax Rate: {self.city.tax_rate * 100}%")
-        self.buildings_label.setText(f"Buildings: {', '.join(self.city.buildings)}")
 
         # Collect taxes automatically
         taxes = self.city.collect_taxes()
@@ -168,6 +166,9 @@ class CityBuilder(QWidget):
             self.month_label.setText("January")
         else:
             self.month_label.setText(current_date.addMonths(1).toString("MMMM"))
+
+        # Update buildings label with a new line for each building
+        self.buildings_label.setText(f"Buildings:\n{', '.join(self.city.buildings)}")
 
     def collect_taxes(self):
         taxes = self.city.collect_taxes()
