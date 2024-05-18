@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
 )
 from PyQt5.QtCore import QThread, pyqtSignal
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, QDate, Qt
 
 class City:
     def __init__(self, name):
@@ -47,6 +47,10 @@ class CityBuilder(QWidget):
         self.city = City(city_name)  # Create an instance of the City class
         self.setWindowTitle(f"{self.city.name} City Builder")
 
+        # Create year and month labels
+        self.year_label = QLabel("2000")
+        self.month_label = QLabel("January")
+
         # Create UI elements
         self.population_label = QLabel(f"Population: {self.city.population}")
         self.funds_label = QLabel(f"Funds: ${self.city.funds}")
@@ -61,6 +65,7 @@ class CityBuilder(QWidget):
         self.quit_button = QPushButton("Quit")
 
         # Layout
+        self.layout = QVBoxLayout()
         layout = QVBoxLayout()
         status_layout = QHBoxLayout()
         buttons_layout = QGridLayout()
@@ -76,6 +81,10 @@ class CityBuilder(QWidget):
         buttons_layout.addWidget(self.build_park_button, 1, 0)
         buttons_layout.addWidget(self.collect_taxes_button, 2, 0)
         buttons_layout.addWidget(self.quit_button, 2, 1, 1, 2)
+
+        self.layout.addWidget(self.year_label, alignment=Qt.AlignRight)
+        self.layout.addWidget(self.month_label, alignment=Qt.AlignRight)
+
 
         layout.addLayout(status_layout)
         layout.addLayout(buttons_layout)
@@ -138,6 +147,20 @@ class CityBuilder(QWidget):
         taxes = self.city.collect_taxes()
         print(f"Collected ${taxes} in taxes.")
         self.funds_label.setText(f"Funds: ${self.city.funds}")
+
+        # Get current date
+        current_date = QDate.currentDate()
+
+        # Update year and month labels
+        self.year_label.setText(str(current_date.year()))
+        self.month_label.setText(current_date.toString("MMMM"))
+
+        # Increment month if necessary
+        if current_date.month() == 12:
+            self.year_label.setText(str(current_date.year() + 1))
+            self.month_label.setText("January")
+        else:
+            self.month_label.setText(current_date.addMonths(1).toString("MMMM"))
 
     def collect_taxes(self):
         taxes = self.city.collect_taxes()
