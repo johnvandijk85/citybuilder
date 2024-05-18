@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QGridLayout,
     QMessageBox,
+    QInputDialog,
 )
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtCore import QTimer, QDate, Qt
@@ -19,24 +20,29 @@ class City:
         self.funds = 5000
         self.happiness = 70
         self.tax_rate = 0.1
-        self.buildings = []
+        self.buildings = {}  # Use a dictionary to store building counts
 
     def get_status_text(self):
+        building_summary = "\n".join(
+            f"{building_type}: {count}"
+            for building_type, count in self.buildings.items()
+        )
         return f"""
         Population: {self.population}
         Funds: ${self.funds}
         Happiness: {self.happiness}%
         Tax Rate: {self.tax_rate * 100}%
-        Buildings: {', '.join(self.buildings)}
+        Buildings:
+        {building_summary}
         """
 
     def collect_taxes(self):
         taxes = 0
-        for building in self.buildings:
-            if building == "House":
-                taxes += 100
-            elif building == "Factory":
-                taxes += 500
+        for building_type, count in self.buildings.items():
+            if building_type == "House":
+                taxes += 100 * count
+            elif building_type == "Factory":
+                taxes += 500 * count
         self.funds += taxes
         return taxes
 
@@ -60,7 +66,7 @@ class CityBuilder(QWidget):
         self.funds_label = QLabel(f"Funds: ${self.city.funds}")
         self.happiness_label = QLabel(f"Happiness: {self.city.happiness}%")
         self.tax_rate_label = QLabel(f"Tax Rate: {self.city.tax_rate * 100}%")
-        self.buildings_label = QLabel(f"Buildings: {', '.join(self.city.buildings)}")
+        self.buildings_label = QLabel(f"Buildings: {self.city.get_status_text()}")
 
         self.build_house_button = QPushButton("Build House")
         self.build_factory_button = QPushButton("Build Factory")
@@ -73,25 +79,25 @@ class CityBuilder(QWidget):
         status_layout = QHBoxLayout()
         buttons_layout = QGridLayout()
 
-        status_layout.addWidget(self.population_label)
-        status_layout.addWidget(self.funds_label)
-        status_layout.addWidget(self.happiness_label)
-        status_layout.addWidget(self.tax_rate_label)
+        # Add status labels to the status layout
+        #status_layout.addWidget(self.population_label)
+        #status_layout.addWidget(self.funds_label)
+        #status_layout.addWidget(self.happiness_label)
+        #status_layout.addWidget(self.tax_rate_label)
         status_layout.addWidget(self.buildings_label)
 
+        # Add buttons to the buttons layout
         buttons_layout.addWidget(self.build_house_button, 0, 0)
         buttons_layout.addWidget(self.build_factory_button, 0, 1)
         buttons_layout.addWidget(self.build_park_button, 1, 0)
         buttons_layout.addWidget(self.collect_taxes_button, 2, 0)
         buttons_layout.addWidget(self.quit_button, 2, 1, 1, 2)
 
+        # Add year and month labels to the top right corner
         self.layout.addWidget(self.year_label, alignment=Qt.AlignRight)
         self.layout.addWidget(self.month_label, alignment=Qt.AlignRight)
 
-        # Add year and month labels
-        status_layout.addWidget(self.year_label)
-        status_layout.addWidget(self.month_label)
-
+        # Add the status and buttons layouts to the main layout
         self.layout.addLayout(status_layout)
         self.layout.addLayout(buttons_layout)
 
@@ -115,7 +121,8 @@ class CityBuilder(QWidget):
             if self.city.funds >= cost:
                 self.city.funds -= cost
                 self.city.population += 100
-                self.city.buildings.append("House")
+                self.city.buildings.setdefault("House", 0)
+                self.city.buildings["House"] += 1
                 print(f"You built a House! Population increased by 100.")
             else:
                 print("Not enough funds to build a House.")
@@ -125,7 +132,8 @@ class CityBuilder(QWidget):
             if self.city.funds >= cost:
                 self.city.funds -= cost
                 self.city.population += 200
-                self.city.buildings.append("Factory")
+                self.city.buildings.setdefault("Factory", 0)
+                self.city.buildings["Factory"] += 1
                 self.city.happiness -= 10
                 print(f"You built a Factory! Population increased by 200, but happiness decreased by 10.")
             else:
@@ -136,7 +144,8 @@ class CityBuilder(QWidget):
             if self.city.funds >= cost:
                 self.city.funds -= cost
                 self.city.happiness += 20
-                self.city.buildings.append("Park")
+                self.city.buildings.setdefault("Park", 0)
+                self.city.buildings["Park"] += 1
                 print(f"You built a Park! Happiness increased by 20.")
             else:
                 print("Not enough funds to build a Park.")
@@ -167,8 +176,8 @@ class CityBuilder(QWidget):
         else:
             self.month_label.setText(current_date.addMonths(1).toString("MMMM"))
 
-        # Update buildings label with a new line for each building
-        self.buildings_label.setText(f"Buildings:\n{', '.join(self.city.buildings)}")
+        # Update buildings label with a summary
+        self.buildings_label.setText(f"Buildings:\n{self.city.get_status_text()}")
 
     def collect_taxes(self):
         taxes = self.city.collect_taxes()
@@ -187,12 +196,37 @@ class CityBuilder(QWidget):
         if result == QMessageBox.Yes:
             sys.exit()
 
+class StartWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("City Builder")
+
+        # Create UI elements
+        self.start_button = QPushButton("Start")
+
+        # Layout
+        layout = QVBoxLayout()
+        layout.addWidget(self.start_button)
+        self.setLayout(layout)
+
+        # Connect button click to a function
+        self.start_button.clicked.connect(self.start_game)
+
+    def start_game(self):
+        # Get city name from user input
+        city_name, ok = QInputDialog.getText(self, "City Name", "Enter the name of your city:")
+        if ok:
+            # Close the start window and open the city builder window
+            self.close()
+            from city_test import CityBuilder
+            city_builder = CityBuilder(city_name)
+            city_builder.show()
+        else:
+            # Show an error message if the user cancels
+            QMessageBox.warning(self, "Error", "Please enter a city name.")
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    city_name = input("Enter the name of your city: ")
-    print(f"City name: {city_name}") 
-    print("test3") # Add a print statement to check the city name
-    city_builder = CityBuilder(city_name)
-    city_builder.show()
+    window = StartWindow()
+    window.show()
     sys.exit(app.exec_())
-
