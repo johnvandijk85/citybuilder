@@ -215,7 +215,7 @@ class StartWindow(QWidget):
         if ok:
             # Close the start window and open the city builder window
             self.close()
-            from city_test import CityBuilder
+            from city_game import CityBuilder
             city_builder = CityBuilder(city_name)
             city_builder.show()
         else:
