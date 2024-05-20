@@ -19,7 +19,7 @@ class City:
         self.population = 1000
         self.funds = 5000
         self.happiness = 70
-        self.tax_rate = 0.1
+        self.tax_rate = 0.01
         self.buildings = {}  # Use a dictionary to store building counts
 
     def get_status_text(self):
@@ -111,7 +111,7 @@ class CityBuilder(QWidget):
 
         # Timer for updating city status
         self.timer = QTimer()
-        self.timer.setInterval(60000)  # Update every minute
+        self.timer.setInterval(5000)  # Update every minute
         self.timer.timeout.connect(self.update_status)
         self.timer.start()
 
@@ -162,19 +162,16 @@ class CityBuilder(QWidget):
         print(f"Collected ${taxes} in taxes.")
         self.funds_label.setText(f"Funds: ${self.city.funds}")
 
-        # Get current date
-        current_date = QDate.currentDate()
+        # Increment month and year if necessary
+        if self.current_month == 12:
+            self.current_year += 1
+            self.current_month = 1
+        else:
+            self.current_month += 1
 
         # Update year and month labels
-        self.year_label.setText(str(current_date.year()))
-        self.month_label.setText(current_date.toString("MMMM"))
-
-        # Increment month if necessary
-        if current_date.month() == 12:
-            self.year_label.setText(str(current_date.year() + 1))
-            self.month_label.setText("January")
-        else:
-            self.month_label.setText(current_date.addMonths(1).toString("MMMM"))
+        self.year_label.setText(str(self.current_year))
+        self.month_label.setText(QDate(self.current_year, self.current_month, 1).toString("MMMM"))
 
         # Update buildings label with a summary
         self.buildings_label.setText(f"Buildings:\n{self.city.get_status_text()}")
