@@ -19,7 +19,7 @@ class City:
         self.population = 1000
         self.funds = 5000
         self.happiness = 70
-        self.tax_rate = 0.01
+        self.tax_rate = 0.0025
         self.buildings = {}  # Use a dictionary to store building counts
 
     def get_status_text(self):
