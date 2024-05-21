@@ -9,6 +9,8 @@ from PyQt5.QtWidgets import (
     QGridLayout,
     QMessageBox,
     QInputDialog,
+    QDialog,
+    QRadioButton,
 )
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtCore import QTimer, QDate, Qt
@@ -236,7 +238,7 @@ class CityBuilder(QWidget):
             self.build_dialog(x, y)
 
     def build_dialog(self, x, y):
-        dialog = QDialog(self)
+        dialog = QDialog(self)  # Create a QDialog instance
         dialog.setWindowTitle("Build")
 
         # Add radio buttons for building types
@@ -263,7 +265,10 @@ class CityBuilder(QWidget):
 
     def build_selected(self, x, y, dialog):
         # Get the selected building type
-        building_type = dialog.findChild(QRadioButton, checked=True).text()
+        for button in dialog.findChildren(QRadioButton):
+            if button.isChecked():
+                building_type = button.text()
+                break
 
         # Build the selected building on the map
         self.build(building_type)
@@ -316,7 +321,7 @@ class MapWidget(QWidget):
                 if building:
                     color = building.color
                 else:
-                    color = Qt.gray
+                    color = Qt.blue
                 painter.fillRect(x * self.square_size, y * self.square_size, self.square_size, self.square_size, color)
 
 class Map:
@@ -327,7 +332,11 @@ class Map:
 
     def get_square(self, x, y):
         if 0 <= x < self.width and 0 <= y < self.height:
-            return self.grid[y][x]
+            building = self.grid[y][x]
+            if not building:
+                building = Building(color=Qt.blue)  # Create a default building with blue color
+                self.grid[y][x] = building
+            return building
         else:
             return None
 
