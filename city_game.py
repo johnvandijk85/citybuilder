@@ -15,8 +15,6 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtCore import QTimer, QDate, Qt
 
-#just a branch test
-
 class City:
     def __init__(self, name):
         self.name = name
