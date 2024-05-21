@@ -210,6 +210,57 @@ class CityBuilder(QWidget):
         if result == QMessageBox.Yes:
             sys.exit()
 
+        # Create a map widget
+        self.map_widget = MapWidget(self.map)
+
+        # Add the map widget to the layout
+        self.layout.addWidget(self.map_widget)
+
+    def update_map_display(self):
+        self.map_widget.update()  # Trigger a repaint of the map widget
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            x = event.x() // self.map_widget.square_size
+            y = event.y() // self.map_widget.square_size
+            self.build_dialog(x, y)
+
+    def build_dialog(self, x, y):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Build")
+
+        # Add radio buttons for building types
+        house_button = QRadioButton("House")
+        factory_button = QRadioButton("Factory")
+        park_button = QRadioButton("Park")
+
+        # Add a button to confirm the selection
+        build_button = QPushButton("Build")
+
+        # Layout
+        layout = QVBoxLayout()
+        layout.addWidget(house_button)
+        layout.addWidget(factory_button)
+        layout.addWidget(park_button)
+        layout.addWidget(build_button)
+        dialog.setLayout(layout)
+
+        # Connect the button click to a function
+        build_button.clicked.connect(lambda: self.build_selected(x, y, dialog))
+
+        # Show the dialog
+        dialog.exec_()
+
+    def build_selected(self, x, y, dialog):
+        # Get the selected building type
+        building_type = dialog.findChild(QRadioButton, checked=True).text()
+
+        # Build the selected building on the map
+        self.build(building_type)
+
+        # Close the dialog
+        dialog.close()
+
 class StartWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -238,6 +289,26 @@ class StartWindow(QWidget):
         else:
             # Show an error message if the user cancels
             QMessageBox.warning(self, "Error", "Please enter a city name.")
+
+    
+
+class MapWidget(QWidget):
+    def __init__(self, map):
+        super().__init__()
+        self.map = map
+        self.square_size = 50  # Size of each square in pixels
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        for y in range(self.map.height):
+            for x in range(self.map.width):
+                building = self.map.get_square(x, y)
+                if building:
+                    color = building.color
+                else:
+                    color = Qt.gray
+                painter.fillRect(x * self.square_size, y * self.square_size, self.square_size, self.square_size, color)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
