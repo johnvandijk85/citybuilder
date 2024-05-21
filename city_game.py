@@ -115,8 +115,7 @@ class CityBuilder(QWidget):
         self.timer.timeout.connect(self.update_status)
         self.timer.start()
 
-        # Create a map instance
-        self.map = Map(10, 10)
+        
 
     def build(self, building):
         if building == "House":
@@ -152,20 +151,6 @@ class CityBuilder(QWidget):
                 print(f"You built a Park! Happiness increased by 20.")
             else:
                 print("Not enough funds to build a Park.")
-
-        # Get the clicked square coordinates
-        x, y = self.get_clicked_square()
-
-        # Build the selected building on the map
-        if building_type == "House":
-            self.map.set_square(x, y, House())
-        elif building_type == "Factory":
-            self.map.set_square(x, y, Factory())
-        elif building_type == "Park":
-            self.map.set_square(x, y, Park())
-
-        # Update the map display
-        self.update_map_display()
 
     def update_status(self):
         # Update city status labels
